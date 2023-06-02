@@ -3,7 +3,7 @@ import subprocess
 import json
 import sqlparse
 
-sql_folder = "/home/test/Sprint43/"
+sql_folder = "/home/test/api/scripts"
 execution_records_file = "/home/test/execution_records.json"
 database_name = "school"
 
@@ -59,19 +59,28 @@ def execute_sql_files(folder_path):
 
                 print(f"Executing file: {sql_file_path}")
 
+                if current_line >= len(queries):
+                    print(f"All queries in file {sql_file_path} are completed. Nothing to do.")
+                    continue
+
                 for line in queries[current_line:]:
                     if current_line < len(execution_records[root][file]["lines"]) and execution_records[root][file]["lines"][current_line]["success"]:
-                        print(f"Line {current_line} in file {sql_file_path} already executed successfully.")
+                        print(f"Line {current_line+1} in file {sql_file_path} already executed successfully.")
                     else:
                         if execute_sql_command(line.strip()):
                             execution_records[root][file]["lines"].append({"success": True})
                             execution_records[root][file]["last_executed_line"] = current_line
+                            print(f"Line {current_line+1} in file {sql_file_path} executed successfully.")
                         else:
                             folder_executed = False
-                            print(f"Error occurred on line {current_line} in file {sql_file_path}. Starting from the next file.")
+                            print(f"Error occurred on line {current_line+1} in file {sql_file_path}.")
                             break
 
                     current_line += 1
+
+                lines_pending = len(queries) - current_line
+                if lines_pending > 0:
+                    print(f"There are {lines_pending} lines pending in file {sql_file_path}.")
 
         if folder_executed:
             execution_records[root]["success"] = True
